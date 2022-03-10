@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.10
+  pre_build:
+    commands:
+      - pip install -r requirements.txt
+      - pip install -e src/
+      - python -m pytest tests/ -v
+      - python -m mypy src/      
+      - python -m black --check .
+  build:
+    commands:
+      - echo "we will run some tests"
+  post_build:
+    commands:
+      - echo "we are in the post build phase"
