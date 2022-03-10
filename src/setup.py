@@ -2,7 +2,7 @@ from setuptools import setup  # type: ignore
 
 setup(
     name="ezaws",
-    version="0.2",
+    version="0.12",
     packages=["ezaws"],
     description="An easy to use interface to AWS, ezaws.",
     url="https://github.com/saidvandeklundert/ezaws",
