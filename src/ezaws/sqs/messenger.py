@@ -1,6 +1,3 @@
-"""
-https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Client.send_message
-"""
 import boto3
 from dataclasses import dataclass
 from typing import TypeVar
