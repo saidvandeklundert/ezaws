@@ -1,40 +1,22 @@
 """
 https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Client.send_message
 """
-from pprint import pprint
 import boto3
 from dataclasses import dataclass
-from typing import Dict, List, Optional, TypeVar
+from typing import TypeVar
 from ezaws.sqs.models import (
     DeleteQueueResponse,
     CreateQueueResponse,
     ListQueueResponse,
     GetQueueResponse,
+    DeleteMessageResponse,
     SendMessageResponse,
     ReadMessageResponse,
     PurgeQueueResponse,
     QueueAttributes,
-    Message,
 )
 
 T = TypeVar("T", bound="Messenger")
-
-
-# Functions:
-
-
-def delete_queue(queue_name: str, region: str) -> DeleteQueueResponse:
-    sqs_client = boto3.client("sqs", region_name=region)
-    response = sqs_client.delete_queue(QueueUrl=queue_name)
-    return DeleteQueueResponse(**response)
-
-
-def list_queues(region: str, max_results=100) -> ListQueueResponse:
-    """Returns a list of URLs inside a ListQueueResponse,
-    listing all the queues in a region."""
-    sqs_client = boto3.client("sqs", region_name=region)
-    response = sqs_client.list_queues(MaxResults=max_results)
-    return ListQueueResponse(**response)
 
 
 # TODO: add read_all() method
@@ -66,9 +48,10 @@ class Messenger:
         for url in list_q_response:
             if url.endswith(queue_name):
                 sqs_client = boto3.client("sqs", region_name=region)
-                response: GetQueueResponse = sqs_client.get_queue_url(
+                response = sqs_client.get_queue_url(
                     QueueName=queue_name,
                 )
+                response = GetQueueResponse(**response)
                 return Messenger(queueu_url=response.QueueUrl, region=region)
         client = boto3.client("sqs", region_name=region)
         response = client.create_queue(
@@ -91,7 +74,8 @@ class Messenger:
         """Returns a queue with target name for the region.
 
         Creates the queue if it does not already exist."""
-        list_queue_response = self._list_queues()
+
+        list_queue_response = self._list_queues(region_name)
         for q_url in list_queue_response:
             if queue_name in q_url:
                 # queue exists, so we return the queueu url:
@@ -133,17 +117,12 @@ class Messenger:
             QueueUrl=self.queueu_url,
             ReceiptHandle=receipt_handle,
         )
-        return response
+        return DeleteMessageResponse(**response)
 
     def get_queue_count(self) -> int:
         """Returns the 'ApproximateNumberOfMessages' from the queueu."""
-        sqs_client = boto3.client("sqs", region_name=self.region)
-        response = sqs_client.get_queue_attributes(
-            QueueUrl=self.queueu_url,
-            AttributeNames=["ApproximateNumberOfMessages"],
-        )
 
-        return response["Attributes"]["ApproximateNumberOfMessages"]
+        return int(self.get_queue_attributes().ApproximateNumberOfMessages)
 
     def get_queue_attributes(self) -> QueueAttributes:
         """Returns the queueu attributes."""
@@ -162,37 +141,18 @@ class Messenger:
 
         return PurgeQueueResponse(**response)
 
+    def delete_queue(self) -> DeleteQueueResponse:
+        """Deletes the queue"""
+        sqs_client = boto3.client("sqs", region_name=self.region)
+        response = sqs_client.delete_queue(QueueUrl=self.queueu_url)
+        return DeleteQueueResponse(**response)
+
+    @staticmethod
     def _list_queues(region: str, max_results=100) -> ListQueueResponse:
         """Returns a list of URLs inside a ListQueueResponse,
         listing all the queues in a region."""
+
         sqs_client = boto3.client("sqs", region_name=region)
 
         response = sqs_client.list_queues(MaxResults=max_results)
         return ListQueueResponse(**response)
-
-
-if __name__ == "__main__":
-
-    msgnr = Messenger(
-        queueu_url="https://eu-central-1.queue.amazonaws.com/717687450252/example-queue",
-        region="eu-central-1",
-    )
-    # msgnr._list_queues("eu-central-1")
-    print(msgnr.get_queue_count())
-    print(msgnr.get_queue_attributes())
-
-    msg = msgnr.send_message("message 1")
-    msg = msgnr.send_message("message 2")
-    msg = msgnr.send_message("message 3")
-    msg = msgnr.send_message("message 4")
-    msg = msgnr.send_message("message 5")
-
-    msg_read = msgnr.read_messages(nr_of_messages=10)
-
-    for m in msg_read:
-        m = Message(**m)
-        print(f"read message {m.Body}")
-        msgnr.delete_message(receipt_handle=m.ReceiptHandle)
-
-    print(msgnr.get_queue_count())
-    pprint(vars(msgnr.get_queue_attributes()))

@@ -1,5 +1,13 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Iterator
+
+
+@dataclass
+class ResponseMetadata:
+    RequestId: str
+    HTTPStatusCode: int
+    HTTPHeaders: Dict[str, str]
+    RetryAttempts: Optional[int]
 
 
 @dataclass
@@ -27,28 +35,12 @@ class Message:
 
 
 @dataclass
-class ResponseMetadata:
-    RequestId: str
-    HTTPStatusCode: str
-    HTTPHeaders: Dict[str, str]
-    RetryAttempts: int
-
-
-@dataclass
 class ReadMessageResponse:
     ResponseMetadata: ResponseMetadata
     Messages: List[Message] = field(default_factory=list)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Message]:
         return iter(self.Messages)
-
-
-@dataclass
-class ResponseMetadata:
-    RequestId: str
-    HTTPStatusCode: int
-    HTTPHeaders: Dict[str, str]
-    RetryAttempts: Optional[int]
 
 
 @dataclass
@@ -90,9 +82,21 @@ class ListQueueResponse:
     QueueUrls: List[str]
     ResponseMetadata: ResponseMetadata
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self.QueueUrls)
 
 
+@dataclass
 class PurgeQueueResponse:
+    ResponseMetadata: ResponseMetadata
+
+
+@dataclass
+class GetQueueAttributesResponse:
+    ResponseMetadata: ResponseMetadata
+    Attributes: QueueAttributes
+
+
+@dataclass
+class DeleteMessageResponse:
     ResponseMetadata: ResponseMetadata
