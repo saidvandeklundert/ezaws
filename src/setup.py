@@ -1,4 +1,8 @@
 from setuptools import setup  # type: ignore
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="ezaws",
@@ -13,4 +17,6 @@ setup(
         "Source": "https://github.com/saidvandeklundert/ezaws",
         "Documentation": "https://github.com/saidvandeklundert/ezaws",
     },
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 )
