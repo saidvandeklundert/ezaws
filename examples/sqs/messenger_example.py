@@ -1,17 +1,25 @@
 from ezaws import Messenger
 import pprint
+from ezaws import Regions
 
 if __name__ == "__main__":
 
-    msgnr = Messenger.from_queue_name(queue_name="example-queue", region="eu-central-1")
-    # msgnr._list_queues("eu-central-1")
-    pprint(msgnr.get_queue_count())
+    msgnr = Messenger.from_queue_name(
+        queue_name="example-queue", region=Regions.eu_central_1
+    )
+
+    msg = msgnr.send_message("message 1")
+
+    pprint(msg)
+    q_count = msgnr.get_queue_count()
+    print(q_count)
+    pprint(vars(msgnr.get_queue_attributes()))
+
     """
     print(msgnr.get_queue_count())
     print(msgnr.get_queue_attributes())
 
-    msg = msgnr.send_message("message 1")
-    msg = msgnr.send_message("message 2")
+
     msg = msgnr.send_message("message 3")
     msg = msgnr.send_message("message 4")
     msg = msgnr.send_message("message 5")
@@ -23,8 +31,7 @@ if __name__ == "__main__":
         print(f"read message {m.Body}")
         msgnr.delete_message(receipt_handle=m.ReceiptHandle)
 
-    print(msgnr.get_queue_count())
-    pprint(vars(msgnr.get_queue_attributes()))
+
     """
     """
 
