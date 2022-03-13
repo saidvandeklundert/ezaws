@@ -1,10 +1,21 @@
 import boto3
 from dataclasses import dataclass
-from ezaws.models.ssm import GetParameterResponse, RegionParameters
+from ezaws.models.ssm import (
+    GetParameterResponse,
+    RegionParameters,
+    Parameter,
+    CreateParameter,
+)
 
 
 @dataclass
 class ParameterStore:
+    """
+    Interface to the SSM Parameter store.
+
+    TODO: create and delete parameter.
+    """
+
     region: str
 
     def get_parameter(self, parameter: str, unencrypted: bool = True):
@@ -26,12 +37,32 @@ class ParameterStore:
         client_response = ssm_client.describe_parameters()
         return RegionParameters(**client_response)
 
+    def create_parameter(self, parameter: CreateParameter):
+        """Create a parameter"""
+        ssm_client = boto3.client("ssm", self.region)
+        args = parameter.generate_parameter_args()
 
-if __name__ == "__main__":
-    from pprint import pprint
+        client_response = ssm_client.put_parameter(**args)
 
-    ps = ParameterStore(region="eu-central-1")
-    param_resp = ps.get_parameter("/passwords/infrastructure/ssot_token")
-    pprint(param_resp)
-    region_param_resp = ps.describe_region_parameters()
-    pprint(region_param_resp)
+        return client_response
+
+
+"""
+d = {
+    "Version": 1,
+    "Tier": "Standard",
+    "ResponseMetadata": {
+        "RequestId": "9d9e4546-b7fb-4a8c-acb2-576b7a95ae4a",
+        "HTTPStatusCode": 200,
+        "HTTPHeaders": {
+            "server": "Server",
+            "date": "Sun, 13 Mar 2022 20:37:56 GMT",
+            "content-type": "application/x-amz-json-1.1",
+            "content-length": "31",
+            "connection": "keep-alive",
+            "x-amzn-requestid": "9d9e4546-b7fb-4a8c-acb2-576b7a95ae4a",
+        },
+        "RetryAttempts": 0,
+    },
+}
+"""
