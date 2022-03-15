@@ -37,6 +37,8 @@ class CreateParameter(BaseModel):
     AllowedPattern: Optional[str]
 
     def generate_parameter_args(self):
+        """Generate the Parameter arguments for use by removing all
+        keys that have the value 'None'."""
         cur_d = vars(self)
         args = {}
         for key, value in cur_d.items():
@@ -72,3 +74,13 @@ class RegionParameters(BaseModel):
 
     def __iter__(self):
         return iter(self.Parameters)
+
+
+class DeteleParameterResponse(BaseModel):
+    ResponseMetadata: ResponseMetadata
+
+
+class CreateParameterResponse(BaseModel):
+    Version: int
+    Tier: Optional[str]
+    ResponseMetadata: ResponseMetadata

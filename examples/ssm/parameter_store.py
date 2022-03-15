@@ -1,7 +1,6 @@
 from ezaws.ssm.parameter_store import ParameterStore
 from ezaws.models.ssm import CreateParameter
-import datetime
-from dateutil.tz import tzlocal
+import time
 
 to_create = {
     "DataType": "text",
@@ -18,11 +17,22 @@ if __name__ == "__main__":
     from pprint import pprint
 
     ps = ParameterStore(region="eu-central-1")
-    param_resp = ps.get_parameter("/passwords/infrastructure/ssot_token")
-    pprint(param_resp)
-    region_param_resp = ps.describe_region_parameters()
-    pprint(region_param_resp)
 
+    print("Creating parameter")
+    ps.create_parameter(parameter=param_to_create)
+    time.sleep(3)
+    print("Retrieve parameter")
+    param_resp = ps.get_parameter("/passwords/infrastructure/created_parameter")
+    pprint(param_resp)
+    print("Retrieve all parameters")
+    region_param_resp = ps.describe_region_parameters()
     for param in region_param_resp:
         pprint(param.Name)
-    ps.create_parameter(parameter=param_to_create)
+
+    print("Deleting parameter")
+    ps.delete_parameter("/passwords/infrastructure/created_parameter")
+    time.sleep(3)
+    print("Retrieve all parameters")
+    region_param_resp = ps.describe_region_parameters()
+    for param in region_param_resp:
+        pprint(param.Name)

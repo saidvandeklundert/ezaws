@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from ezaws.models.ssm import (
     GetParameterResponse,
     RegionParameters,
-    Parameter,
     CreateParameter,
+    DeteleParameterResponse,
+    CreateParameterResponse,
 )
 
 
@@ -12,8 +13,6 @@ from ezaws.models.ssm import (
 class ParameterStore:
     """
     Interface to the SSM Parameter store.
-
-    TODO: create and delete parameter.
     """
 
     region: str
@@ -37,32 +36,19 @@ class ParameterStore:
         client_response = ssm_client.describe_parameters()
         return RegionParameters(**client_response)
 
-    def create_parameter(self, parameter: CreateParameter):
+    def create_parameter(self, parameter: CreateParameter) -> CreateParameterResponse:
         """Create a parameter"""
         ssm_client = boto3.client("ssm", self.region)
         args = parameter.generate_parameter_args()
 
         client_response = ssm_client.put_parameter(**args)
 
-        return client_response
+        return CreateParameterResponse(**client_response)
 
+    def delete_parameter(self, parameter_name: str) -> DeteleParameterResponse:
+        """Delete a parameter from SSM parameter store."""
+        ssm_client = boto3.client("ssm", self.region)
+        arg = {"Name": parameter_name}
+        client_response = ssm_client.delete_parameter(**arg)
 
-"""
-d = {
-    "Version": 1,
-    "Tier": "Standard",
-    "ResponseMetadata": {
-        "RequestId": "9d9e4546-b7fb-4a8c-acb2-576b7a95ae4a",
-        "HTTPStatusCode": 200,
-        "HTTPHeaders": {
-            "server": "Server",
-            "date": "Sun, 13 Mar 2022 20:37:56 GMT",
-            "content-type": "application/x-amz-json-1.1",
-            "content-length": "31",
-            "connection": "keep-alive",
-            "x-amzn-requestid": "9d9e4546-b7fb-4a8c-acb2-576b7a95ae4a",
-        },
-        "RetryAttempts": 0,
-    },
-}
-"""
+        return DeteleParameterResponse(**client_response)
