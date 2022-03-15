@@ -1,7 +1,7 @@
 from ezaws.models.common import ResponseMetadata
 from pydantic import BaseModel
 import datetime
-from typing import List, Dict, Optional, Literal
+from typing import List, Dict, Optional, Literal, Any
 from dateutil.tz import tzutc
 
 
@@ -37,3 +37,16 @@ class VersioningResponse(BaseModel):
     def __post_init__(self):
         if self.Status == "Enabled":
             self.versioning = True
+
+
+class ObjectMetadata(BaseModel):
+    ResponseMetadata: ResponseMetadata
+    AcceptRanges: str
+    ContentLength: int
+    ContentType: str
+    ETag: str
+    LastModified: datetime.datetime
+    Metadata: Dict[Any, Any]
+    SSEKMSKeyId: str
+    ServerSideEncryption: str
+    VersionId: str
