@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class Regions:
+class Region:
     """All the AWS regions"""
 
     us_east_2: str = "us-east-2"  # US East (Ohio)
