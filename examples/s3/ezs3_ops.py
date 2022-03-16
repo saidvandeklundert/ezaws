@@ -3,16 +3,13 @@ from ezaws import S3, S3Bucket, Region, TCBuilder
 
 if __name__ == "__main__":
     from pprint import pprint
-    import tempfile
-
-    temp_file = tempfile.TemporaryFile()
-    temp_file.write(b"Hello world!")
 
     s3 = S3()
     resp = s3.list_buckets()
-    bucket = S3Bucket(region=Region.eu_central_1, name="testingtheclass")
-    # bucket.create_bucket()
-    # bucket.delete_bucket()
+    bucket = S3Bucket(region=Region.eu_central_1, name="s3examplebucketusingezaws")
+
+    bucket.create_bucket()
+
     resp = bucket.get_versioning()
     pprint(resp.dict())
     resp = bucket.upload_file("example.txt", "some_file")
@@ -44,3 +41,4 @@ if __name__ == "__main__":
     pprint(resp)
     resp = bucket.delete_object(s3_key_name="example.txt")
     pprint(resp)
+    bucket.delete_bucket()
