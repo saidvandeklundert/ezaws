@@ -42,7 +42,9 @@ class ParameterStore:
         args = parameter.generate_parameter_args()
 
         client_response = ssm_client.put_parameter(**args)
+        import pprint
 
+        pprint.pprint(client_response)
         return CreateParameterResponse(**client_response)
 
     def delete_parameter(self, parameter_name: str) -> DeteleParameterResponse:

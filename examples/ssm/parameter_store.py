@@ -10,6 +10,7 @@ to_create = {
     "Version": 1,
     "Tier": "Standard",
     "Description": "Created with CreateParameter",
+    "Overwrite": True,
 }
 param_to_create = CreateParameter(**to_create)
 

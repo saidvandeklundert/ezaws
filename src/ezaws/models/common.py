@@ -1,9 +1,8 @@
-from dataclasses import dataclass
 from typing import Dict, Optional
+from pydantic import BaseModel
 
 
-@dataclass
-class ResponseMetadata:
+class ResponseMetadata(BaseModel):
     RequestId: str
     HostId: Optional[str]
     HTTPStatusCode: int
