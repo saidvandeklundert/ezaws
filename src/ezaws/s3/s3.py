@@ -1,14 +1,18 @@
-from ensurepip import version
+from io import BufferedReader
 import boto3
+from boto3.s3.transfer import TransferConfig, S3Transfer
 from ezaws.models.s3 import (
     ListBucketsResponse,
     CreateBucketResponse,
     DeleteBucketResponse,
     VersioningResponse,
     ObjectMetadata,
+    PutObjectResponse,
+    DeleteObjectResponse,
+    TCBuilder,
 )
 from ezaws.models.regions import Region
-from typing import Union, Literal
+from typing import Any, Union, Literal, Optional, Dict
 from dataclasses import dataclass
 from pydantic import BaseModel
 
@@ -61,7 +65,6 @@ class S3Bucket:
         """
         s3 = boto3.client("s3")
         response = s3.head_object(Bucket=self.name, Key=s3_file_name)
-
         return ObjectMetadata(**response)
 
     def get_file_size(
@@ -78,11 +81,91 @@ class S3Bucket:
         elif block_size == "MB":
             return int(size / MB)
 
-    def upload_file(self):
-        raise NotImplementedError
+    def put_object(
+        self, file_name: str, s3_key_name: Optional[str] = None
+    ) -> PutObjectResponse:
+        """Put an object in S3"""
+        s3_key_name = s3_key_name if s3_key_name is not None else file_name
+        s3 = boto3.client("s3")
 
-    def upload_large_file(self):
-        raise NotImplementedError
+        resp = s3.put_object(Body=file_name, Bucket=self.name, Key=s3_key_name)
+        return PutObjectResponse(**resp)
+
+    def upload_file(self, file_name: str, s3_key_name: Optional[str] = None) -> Any:
+        """Upload a file to S3 using upload_file
+
+        TODO: examine all of the upload_file possible returns.
+
+        add optional argument to satisfy 'ExtraArgs={'Metadata': {'mykey': 'myvalue'}'
+         from https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer.ALLOWED_UPLOAD_ARGS
+        """
+        s3_key_name = s3_key_name if s3_key_name is not None else file_name
+        s3 = boto3.client("s3")
+
+        resp = s3.upload_file(file_name, self.name, s3_key_name)
+
+        return resp
+
+    def controlled_upload(
+        self,
+        file_name: str,
+        s3_key_name: Optional[str] = None,
+        tc: Optional[Union[TCBuilder, Dict]] = None,
+    ) -> None:
+
+        """
+        Upload a file to S3 with more fine-grained control.
+
+        tc is a Union of either of the following:
+          - None: in which case the TransferConfig() defaults are used
+          - TCBuilder: a model for dev ergonmics that you can use to
+           instantiate an instance of TransferConfig()
+          - Dict: a dict that is used to instantiate an instance of TransferConfig()
+
+        The TransferConfig description:
+         https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/s3/transfer.html#TransferConfig
+
+        TransferConfig example (default values):
+
+            TransferConfig(
+                multipart_threshold=8 * MB,
+                max_concurrency=10,
+                multipart_chunksize=8 * MB,
+                num_download_attempts=5,
+                max_io_queue=100,
+                io_chunksize=256 * KB,
+                use_threads=True,
+                max_bandwidth=None,
+            )
+        """
+        s3_key_name = s3_key_name if s3_key_name is not None else file_name
+
+        session = boto3.Session()
+        if tc is None:
+            tc_config = TransferConfig()  # use default
+        elif isinstance(tc, TCBuilder):
+            tc_config = TransferConfig(
+                **{k: v for (k, v) in tc.dict().items() if v is not None}
+            )
+        elif isinstance(tc, dict):
+            tc_config = TransferConfig(**tc)
+
+        s3_client = session.client("s3")
+        transfer_object = S3Transfer(client=s3_client, config=tc_config)
+        resp = transfer_object.upload_file(file_name, self.name, s3_key_name)
+        return resp
+
+    def delete_object(
+        self, s3_key_name: str, version_id: Optional[str] = None
+    ) -> DeleteObjectResponse:
+        """Deletes an object from the bucket."""
+        s3 = boto3.client("s3")
+        del_args = {"Bucket": self.name, "Key": s3_key_name}
+        if version_id:
+            del_args.update({"VersionID": version_id})
+
+        response = s3.delete_object(**del_args)
+        return DeleteObjectResponse(**response)
 
     def empty(self):
         raise NotImplementedError
@@ -92,27 +175,3 @@ class S3Bucket:
 
     def set_versioning(self):
         raise NotImplementedError
-
-    def delete_file(self):
-        raise NotImplementedError
-
-
-if __name__ == "__main__":
-    from pprint import pprint
-
-    s3 = S3()
-    resp = s3.list_buckets()
-    bucket = S3Bucket(region=Region.eu_central_1, name="saidvandeklundert-testing")
-    # bucket.create_bucket()
-    # bucket.delete_bucket()
-    resp = bucket.get_versioning()
-    pprint(resp.dict())
-    resp = bucket.get_object_metadata(s3_file_name="example_encrypted.txt")
-    print("HEAD OBJECT")
-    pprint(resp)
-    resp = bucket.get_file_size(s3_file_name="example_encrypted.txt")
-    print("FILESIZE", resp)
-    resp = bucket.get_file_size(
-        s3_file_name="example_encrypted.txt", block_size="bytes"
-    )
-    print("FILESIZE", resp)
