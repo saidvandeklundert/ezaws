@@ -1,4 +1,3 @@
-from io import BufferedReader
 import boto3
 from boto3.s3.transfer import TransferConfig, S3Transfer
 from ezaws.models.s3 import (
@@ -59,7 +58,7 @@ class S3Bucket:
 
         return VersioningResponse(**versioning_response)
 
-    def get_object_metadata(self, s3_file_name: str):
+    def get_object_metadata(self, s3_file_name: str) -> ObjectMetadata:
         """
         Display metadata for target file stored in S3
         """
@@ -69,7 +68,7 @@ class S3Bucket:
 
     def get_file_size(
         self, s3_file_name: str, block_size: Literal["bytes", "MB"] = "MB"
-    ):
+    ) -> int:
         """
         List a file from S3
         """
@@ -77,7 +76,7 @@ class S3Bucket:
         size = resp.ContentLength
 
         if block_size == "bytes":
-            return size
+            return int(size)
         elif block_size == "MB":
             return int(size / MB)
 
@@ -152,8 +151,7 @@ class S3Bucket:
 
         s3_client = session.client("s3")
         transfer_object = S3Transfer(client=s3_client, config=tc_config)
-        resp = transfer_object.upload_file(file_name, self.name, s3_key_name)
-        return resp
+        transfer_object.upload_file(file_name, self.name, s3_key_name)
 
     def delete_object(
         self, s3_key_name: str, version_id: Optional[str] = None
@@ -167,11 +165,11 @@ class S3Bucket:
         response = s3.delete_object(**del_args)
         return DeleteObjectResponse(**response)
 
-    def empty(self):
+    def empty(self) -> None:
         raise NotImplementedError
 
-    def set_encryption(self):
+    def set_encryption(self) -> None:
         raise NotImplementedError
 
-    def set_versioning(self):
+    def set_versioning(self) -> None:
         raise NotImplementedError

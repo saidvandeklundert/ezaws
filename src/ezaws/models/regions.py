@@ -23,7 +23,7 @@ class Region:
     cn_north_west: str = "cn-northwest-1"  # China (Ningxia)
     eu_central_1: str = "eu-central-1"  # Europe (Frankfurt)
     eu_west_1: str = "eu-west-1"  # Europe (Ireland)
-    eu_west_1: str = "eu-west-2"  # Europe (London)
+    eu_west_2: str = "eu-west-2"  # Europe (London)
     eu_south_1: str = "eu-south-1"  # Europe (Milan)
     eu_west_3: str = "eu-west-3"  # Europe (Paris)
     eu_north_1: str = "eu-north-1"  # Europe (Stockholm)
