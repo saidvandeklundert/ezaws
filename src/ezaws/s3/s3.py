@@ -10,10 +10,9 @@ from ezaws.models.s3 import (
     DeleteObjectResponse,
     TCBuilder,
 )
-from ezaws.models.regions import Region
 from typing import Any, Union, Literal, Optional, Dict
 from dataclasses import dataclass
-from pydantic import BaseModel
+
 
 KB = 1024
 MB = KB * KB
