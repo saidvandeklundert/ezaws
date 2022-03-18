@@ -1,10 +1,5 @@
-from dataclasses import dataclass, Field
-from email import message
-from sqlite3 import Timestamp
 import boto3
 from botocore.exceptions import ClientError
-import json
-import datetime
 from ezaws.models.cloudwatch import (
     CreateLogGroupResponse,
     DeleteLogGroupResponse,
