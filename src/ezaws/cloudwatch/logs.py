@@ -1,4 +1,10 @@
 import boto3
+from ezaws.utils.timing import (
+    epoch_minutes_ago,
+    epoch_days_ago,
+    epoch_seconds_ago,
+    epoch_hours_ago,
+)
 from botocore.exceptions import ClientError
 from ezaws.models.cloudwatch import (
     CreateLogGroupResponse,
@@ -8,6 +14,7 @@ from ezaws.models.cloudwatch import (
     Event,
     TailLogResponse,
     LogEvent,
+    Events,
 )
 from typing import Optional, Dict, NewType, Any, Union, List
 from pprint import pprint
@@ -30,6 +37,7 @@ StreamDict = TypedDict(
 
 class Log(BaseModel):
     """Interface to Cloudwatch Logs.
+
 
     TODO:
     - dedup if not stream_name
@@ -205,106 +213,101 @@ class Log(BaseModel):
         )
         return TailLogResponse(**response)
 
+    def get_log_events(
+        self,
+        stream_name: Optional[str] = None,
+        limit: int = 10,
+        startTime: Optional[int] = None,
+        endTime: Optional[int] = None,
+        start_from_head: bool = True,
+    ) -> Events:
+        """Retrieve the entire log and returns it.
 
-if __name__ == "__main__":
-    # TODO: move this to examples and sanitize
-    cw_log = Log(name="creating_classs", region="eu-central-1")
-    print(cw_log.dict())
-    print("streams", cw_log.streams)
-    """
+        Checks the default stream if no stream_name is given.
 
-    resp = cw_log.tail_log(10)
-    pprint(resp)
-    resp = cw_log.tail_log()
-    pprint(resp)
-    resp = cw_log.log_messages(
-        messages=["multiple", "messages"],
-    )
-    print(resp)
+        Returns all the events for the log.
 
-    events = [
-        {
-            "timestamp": int(round(time.time() * 1000)),
-            "message": "msg1",
-        },
-        {
-            "timestamp": int(round(time.time() * 1000)),
-            "message": "msg2",
-        },
-        LogEvent(message="tidbit", timestamp=int(round(time.time() * 1000))),
-    ]
-    resp = cw_log.log_events(events=events)
-    pprint(resp)
+        The last item in the list is the newest event.
 
-    resp = cw_log.log(
-        stream_name="application",
-        message="YOLO",
-    )
+        Notes to self:
 
-    print("streams", cw_log.streams)
-    resp = cw_log.log(
-        stream_name="application",
-        message="YOLO",
-    )
-    print(resp)
-    resp = cw_log.log(message="YOLO",)
-    print(resp)
+          - when startFromHead is set to True, it reads the oldest logs first.
 
-    resp = cw_log.log_messages(
-        messages=["multiple", "messages"],
-    )
-    print(resp)
+          - when startFromHead is set to False, it reads the newest logs first.
 
+          - using 'nextForwardToken' is moving from old to new logs.
 
-    print(resp)
-    
+          - using 'nextBackwardToken' is moving from new to old logs.
+        """
+        if not stream_name:
+            stream_name = self.default_stream_name
+            if self.streams.get(stream_name) is None:
+                raise CloudWatchException(
+                    f"default_stream_name {stream_name} does not exist."
+                )
+        client = boto3.client("logs", region_name=self.region)
+        events = Events()
+        get_log_events_kwargs = {
+            "logGroupName": self.name,
+            "logStreamName": stream_name,
+            "limit": limit,
+            "startFromHead": start_from_head,
+        }
+        if startTime:
+            get_log_events_kwargs["startTime"] = startTime
 
-    
-    cw_log.create_stream(stream_name="general")
-    
-    resp = cw_log.get_log_streams()
-    pprint(resp)
-    
-    cw_log.log(
-        stream_name="application",
-        message="YOLO",
-        seq_token="49627245584982296427518639517447485581149901951829520338",
-    )
-    
-    resp = cw_log.create_log_group()
-    pprint(resp)
-    
-    resp = cw_log.create_stream("application")
-    pprint(resp)
-    
-    resp = cw_log.delete_log_group()
-    pprint(resp)
-    
-    
-    
-    client = boto3.client("logs", region_name=AWS_REGION)
+        if endTime:
+            get_log_events_kwargs["endTime"] = endTime
 
-    response = client.describe_log_groups()
+        response = client.get_log_events(**get_log_events_kwargs)
+        response = TailLogResponse(**response)
+        for event in response.events:
+            events.events.append(event)
 
-    print(json.dumps(response, indent=4))
+        # print(response.nextBackwardToken)
+        # print(response.nextForwardToken)
 
-    for each_line in response["logGroups"]:
-        print(each_line)
+        next_token = response.nextForwardToken
+        while True:
+            get_log_events_kwargs["nextToken"] = next_token
+            response = client.get_log_events(**get_log_events_kwargs)
+            response = TailLogResponse(**response)
+            for event in response.events:
+                events.events.append(event)
+                print(event)
+            # The log is depleted when AWS starts returning
+            # the same token over and over.
+            if next_token == response.nextForwardToken:
+                break
+            else:
+                next_token = response.nextForwardToken
 
-    response = client.describe_log_streams(
-        logGroupName="/aws/lambda/klundert-lambda-sam-helloworldpython3-6BxLjAQrMYOi"
-    )
-    print(response)
+        return events
 
-    response = client.get_log_events(
-        logGroupName="/aws/lambda/klundert-lambda-sam-helloworldpython3-6BxLjAQrMYOi",
-        logStreamName="2021/12/31/[$LATEST]c525e839ab9f4d218505751ab71e9f3f",
-        limit=123,
-        startFromHead=True,
-    )
+    def get_log_events_last_seconds(self, seconds: int) -> Event:
+        epoch_seconds = epoch_seconds_ago(seconds)
+        events = self.get_log_events(
+            limit=5000, startTime=epoch_seconds, start_from_head=True
+        )
+        return events
 
-    log_events = response["events"]
+    def get_log_events_last_minutes(self, minutes: int) -> Event:
+        epoch_minutes = epoch_minutes_ago(minutes)
+        events = self.get_log_events(
+            limit=5000, startTime=epoch_minutes, start_from_head=True
+        )
+        return events
 
-    for each_event in log_events:
-        print(each_event)
-    """
+    def get_log_events_last_hours(self, hours: int) -> Event:
+        epoch_hours = epoch_hours_ago(hours)
+        events = self.get_log_events(
+            limit=5000, startTime=epoch_hours, start_from_head=True
+        )
+        return events
+
+    def get_log_events_last_days(self, days: int) -> Event:
+        epoch_days = epoch_days_ago(days)
+        events = self.get_log_events(
+            limit=5000, startTime=epoch_days, start_from_head=True
+        )
+        return events

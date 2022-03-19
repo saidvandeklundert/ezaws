@@ -56,3 +56,7 @@ class TailLogResponse(BaseModel):
 
     def __iter__(self):
         return iter(self.events)
+
+
+class Events(BaseModel):
+    events: List[Event] = []
