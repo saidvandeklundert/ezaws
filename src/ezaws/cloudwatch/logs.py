@@ -36,7 +36,21 @@ StreamDict = TypedDict(
 
 
 class Log(BaseModel):
-    """Interface to Cloudwatch Logs."""
+    """Interface to Cloudwatch Logs.
+
+    The Log represents a single log group in a region. It can
+     perform most common operations, such as:
+    - create the log group
+    - create streams
+    - retrieve logs
+
+
+    name: name of the log group
+    region: the region the log is in
+    default_stream_name: name of the stream to log to when the stream name is not
+     passed in as an argument to logging functions
+    streams: the streams that have been created for the log group
+    """
 
     name: str
     region: str
