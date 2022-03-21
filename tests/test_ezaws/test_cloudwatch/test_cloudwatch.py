@@ -3,6 +3,7 @@ import time
 from ezaws.models.cloudwatch import (
     CreateLogGroupResponse,
     DeleteLogGroupResponse,
+    Events,
     LogResponse,
     LogEvent,
     TailLogResponse,
@@ -66,6 +67,17 @@ def test_tail_log():
     assert "test_log_events" in messages
     assert "test_log_messages" in messages
     assert "test_log" in messages
+
+
+def test_get_log_events():
+    cw_log = Log(name="testing_log_group", region="eu-central-1")
+    resp_list = []
+    resp_list.append(cw_log.get_log_events_last_seconds(seconds=5))
+    resp_list.append(cw_log.get_log_events_last_minutes(minutes=5))
+    resp_list.append(cw_log.get_log_events_last_hours(hours=5))
+    resp_list.append(cw_log.get_log_events_last_days(days=5))
+    for resp in resp_list:
+        assert isinstance(resp, Events)
 
 
 def test_delete_log_group():

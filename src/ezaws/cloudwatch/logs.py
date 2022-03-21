@@ -36,12 +36,7 @@ StreamDict = TypedDict(
 
 
 class Log(BaseModel):
-    """Interface to Cloudwatch Logs.
-
-
-    TODO:
-    - dedup if not stream_name
-    """
+    """Interface to Cloudwatch Logs."""
 
     name: str
     region: str
@@ -129,12 +124,8 @@ class Log(BaseModel):
             "message": "msg1",
         }
         """
-        if not stream_name:
-            stream_name = self.default_stream_name
-            if not stream_name in self.streams.keys():
-                raise CloudWatchException(
-                    f"default_stream_name {stream_name} does not exist."
-                )
+        if stream_name is None:
+            stream_name = self._get_stream_name()
         client = boto3.client("logs", region_name=self.region)
         # pprint(events)
         events_to_log = list(
@@ -189,18 +180,25 @@ class Log(BaseModel):
                 self.streams[stream.logStreamName] = None
         return None
 
+    def _get_stream_name(self) -> str:
+        """Helper to return the default stream name
+        and raise an exception in case it does not exist.
+        """
+        stream_name = self.default_stream_name
+        if stream_name not in self.streams.keys():
+            raise CloudWatchException(
+                f"default_stream_name {stream_name} does not exist. Existing streams:\n{self.streams}"
+            )
+        return stream_name
+
     def tail_log(
         self, n: int = 100, stream_name: Optional[str] = None
     ) -> TailLogResponse:
         """Look at latest n events in target stream.
 
         Checks the default stream if no stream_name is given."""
-        if not stream_name:
-            stream_name = self.default_stream_name
-            if self.streams.get(stream_name) is None:
-                raise CloudWatchException(
-                    f"default_stream_name {stream_name} does not exist."
-                )
+        if stream_name is None:
+            stream_name = self._get_stream_name()
         client = boto3.client("logs", region_name=self.region)
 
         response = client.get_log_events(
@@ -239,12 +237,8 @@ class Log(BaseModel):
 
           - using 'nextBackwardToken' is moving from new to old logs.
         """
-        if not stream_name:
-            stream_name = self.default_stream_name
-            if self.streams.get(stream_name) is None:
-                raise CloudWatchException(
-                    f"default_stream_name {stream_name} does not exist."
-                )
+        if stream_name is None:
+            stream_name = self._get_stream_name()
         client = boto3.client("logs", region_name=self.region)
         events = Events()
         get_log_events_kwargs = {
@@ -284,28 +278,28 @@ class Log(BaseModel):
 
         return events
 
-    def get_log_events_last_seconds(self, seconds: int) -> Event:
+    def get_log_events_last_seconds(self, seconds: int) -> Events:
         epoch_seconds = epoch_seconds_ago(seconds)
         events = self.get_log_events(
             limit=5000, startTime=epoch_seconds, start_from_head=True
         )
         return events
 
-    def get_log_events_last_minutes(self, minutes: int) -> Event:
+    def get_log_events_last_minutes(self, minutes: int) -> Events:
         epoch_minutes = epoch_minutes_ago(minutes)
         events = self.get_log_events(
             limit=5000, startTime=epoch_minutes, start_from_head=True
         )
         return events
 
-    def get_log_events_last_hours(self, hours: int) -> Event:
+    def get_log_events_last_hours(self, hours: int) -> Events:
         epoch_hours = epoch_hours_ago(hours)
         events = self.get_log_events(
             limit=5000, startTime=epoch_hours, start_from_head=True
         )
         return events
 
-    def get_log_events_last_days(self, days: int) -> Event:
+    def get_log_events_last_days(self, days: int) -> Events:
         epoch_days = epoch_days_ago(days)
         events = self.get_log_events(
             limit=5000, startTime=epoch_days, start_from_head=True

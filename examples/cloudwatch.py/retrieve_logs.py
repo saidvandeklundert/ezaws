@@ -28,6 +28,16 @@ if __name__ == "__main__":
     resp = cw_log.get_log_events_last_seconds(seconds=5)
     pprint(resp)
     for event in resp.events:
+        # The Event has several fields/properties:
+        # - message: the message that was logged to Cloudwatch
+        # - timestamp: the timestap that is recorded in Cloudwatch:
+        #       epoch in ms, which is the number of milliseconds
+        #        after Jan 1, 1970
+        # - date_time_local: the timestap converted to a
+        #       datetime.datetime instance that represents the
+        #        local time.
+        # - epoch_local: date_time_local converted to the epoch in ms.
         print(event.message)
-
-        print(datetime.datetime.utcfromtimestamp(event.timestamp / 1000.0))
+        print(event.timestamp)
+        print(event.date_time_local)
+        print(event.epoch_local)
