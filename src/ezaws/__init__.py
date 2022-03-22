@@ -1,5 +1,5 @@
 """ez imports"""
-
+from ezaws.sqs.models import Message
 from ezaws.sqs.messenger import Messenger
 from ezaws.models.regions import Region
 from ezaws.ssm.parameter_store import ParameterStore
