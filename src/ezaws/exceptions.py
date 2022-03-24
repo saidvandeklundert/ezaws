@@ -6,3 +6,7 @@ class EzawsBaseException(Exception):
 
 class CloudWatchException(EzawsBaseException):
     pass
+
+
+class RDSException(EzawsBaseException):
+    pass
