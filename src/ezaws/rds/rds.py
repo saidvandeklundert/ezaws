@@ -1,8 +1,5 @@
-# https://hands-on.cloud/working-with-rds-in-python-using-boto3/#h-create-an-amazon-rds-instance-using-boto3
-from poplib import CR
 import boto3
 import botocore
-from enum import Enum
 from ezaws import Region
 from dataclasses import dataclass
 from botocore.exceptions import ClientError

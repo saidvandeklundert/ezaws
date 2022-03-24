@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Any, Dict, Optional
 import datetime
 from dateutil.tz import tzutc
+from enum import Enum
 
 
 class DBInstance(Enum):
