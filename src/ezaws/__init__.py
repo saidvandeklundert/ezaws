@@ -7,6 +7,8 @@ from ezaws.s3.s3 import S3, S3Bucket
 from ezaws.models.s3 import TCBuilder
 from ezaws.cloudwatch.logs import Log
 from ezaws.models.cloudwatch import LogEvent
+from ezaws.models.rds import DBInstanceType, DBEngine
+from ezaws.rds.rds import RDS
 
 __all__ = [
     "Messenger",

@@ -6,7 +6,7 @@ from dateutil.tz import tzutc
 from enum import Enum
 
 
-class DBInstance(Enum):
+class DBInstanceType(Enum):
     db_t2_micro = "db.t2.micro"
 
 
@@ -80,5 +80,15 @@ class CreateDBResponse(BaseModel):
 
 
 class DeleteDBResponse(BaseModel):
+    DBInstance: DBInstance
+    ResponseMetadata: ResponseMetadata
+
+
+class StartRDSResponse(BaseModel):
+    DBInstance: DBInstance
+    ResponseMetadata: ResponseMetadata
+
+
+class StopRDSResponse(BaseModel):
     DBInstance: DBInstance
     ResponseMetadata: ResponseMetadata

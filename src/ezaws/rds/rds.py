@@ -1,6 +1,6 @@
 import boto3
 import botocore
-from ezaws import Region
+
 from dataclasses import dataclass
 from botocore.exceptions import ClientError
 from ezaws.models.rds import (
@@ -11,6 +11,8 @@ from ezaws.models.rds import (
     Endpoint,
     DBInstance,
     DBEngine,
+    StartRDSResponse,
+    StopRDSResponse,
 )
 from typing import Union, Optional
 from ezaws.exceptions import RDSException
@@ -95,40 +97,16 @@ class RDS:
             self.endpoint = response.DBInstances[0].Endpoint
         return response
 
+    def start_db(self) -> StartRDSResponse:
+        """Start the database instance"""
+        response = self.rds_client.start_db_instance(DBInstanceIdentifier=self.db_name)
 
-if __name__ == "__main__":
-    from pprint import pprint
+        return StartRDSResponse(**response)
 
-    rds = RDS(
-        region=Region.eu_central_1,
-        master_user_password="U2sbF~q~%!Lrp^vq",
-        master_username="admin01",
-        storage=5,
-        db_name="pipeline01",
-        db_engine=DBEngine.MYSQL.value,
-        db_instance=DBInstance.db_t2_micro.value,
-    )
-    resp = rds.create_database()
-    pprint(resp)
-    # resp = rds.delete_database()
-    # pprint(resp)
-    resp = rds.describe_db()
-    pprint(resp)
-    # sql querry:
-    import mysql.connector
-
-    mydb = mysql.connector.connect(
-        host=rds.endpoint.Address,
-        user=rds.master_username,
-        password=rds.master_user_password,
-        database="pipeline01",
-    )
-
-    mycursor = mydb.cursor()
-
-    mycursor.execute("SELECT * FROM Orders")
-
-    myresult = mycursor.fetchall()
-
-    for x in myresult:
-        print(x)
+    def stop_db(self, snap_shot_identifier: Optional[str] = None):
+        """Stop the database instance"""
+        arg = {"DBInstanceIdentifier": self.db_name}
+        if snap_shot_identifier:
+            arg["DBSnapshotIdentifier"] = snap_shot_identifier
+        response = self.rds_client.stop_db_instance(**arg)
+        return StopRDSResponse(**response)
