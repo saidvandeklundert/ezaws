@@ -9,6 +9,7 @@ from ezaws.cloudwatch.logs import Log
 from ezaws.models.cloudwatch import LogEvent
 from ezaws.models.rds import DBInstanceType, DBEngine
 from ezaws.rds.rds import RDS
+from ezaws.lambdas.lambdas import Lambda
 
 __all__ = [
     "Messenger",
@@ -18,4 +19,9 @@ __all__ = [
     "S3Bucket",
     "TCBuilder",
     "Log",
+    "LogEvent",
+    "DBInstanceType",
+    "DBEngine",
+    "RDS",
+    "Lambda",
 ]

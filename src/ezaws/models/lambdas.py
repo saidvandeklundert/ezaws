@@ -27,6 +27,9 @@ class ListFunctionsResponse(BaseModel):
     Functions: List[Function]
     ResponseMetadata: ResponseMetadata
 
+    def __iter__(self):
+        return iter(self.Functions)
+
 
 class RunFunctionResponse(BaseModel):
     ExecutedVersion: str
