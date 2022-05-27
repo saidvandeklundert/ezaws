@@ -13,6 +13,7 @@ from ezaws.lambdas.lambdas import Lambda
 
 __all__ = [
     "Messenger",
+    "Message",
     "Region",
     "ParameterStore",
     "S3",
