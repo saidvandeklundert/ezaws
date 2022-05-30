@@ -1,7 +1,8 @@
+from ezaws.models.common import ResponseMetadata
 from pydantic import BaseModel
 from enum import Enum
 
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Literal, Dict, Any
 
 
 class AttributeType(Enum):
@@ -47,34 +48,61 @@ class Keys(BaseModel):
 
 class Table(BaseModel):
     table_name: str
-    attributes: Attributes
-    keys: Keys
+    attributes: List[Attributes] = []
+    keys: List[Keys] = []
     rcu: int  # ReadCapacityUnits: 1 is free
     wcu: int  # WriteCapacityUnits: 1 is free
 
+    def add_attribute(
+        self,
+        attribute_name: str,
+        attribute_type: Literal["S", "N", "B"],
+        key_type: Literal["HASH", "RANGE"],
+    ) -> None:
+        """Add an attribute to the Table and define the attribute type and key.
 
-"""
-Delete response:
-{'ResponseMetadata': {'HTTPHeaders': {'connection': 'keep-alive',
-                                      'content-length': '317',
-                                      'content-type': 'application/x-amz-json-1.0',
-                                      'date': 'Sat, 28 May 2022 04:33:53 GMT',
-                                      'server': 'Server',
-                                      'x-amz-crc32': '3414060859',
-                                      'x-amzn-requestid': '3FGB2S6JHUAR73MLARF6UIKTNFVV4KQNSO5AEMVJF66Q9ASUAAJG'},
-                      'HTTPStatusCode': 200,
-                      'RequestId': '3FGB2S6JHUAR73MLARF6UIKTNFVV4KQNSO5AEMVJF66Q9ASUAAJG',
-                      'RetryAttempts': 0},
- 'TableDescription': {'ItemCount': 0,
-                      'ProvisionedThroughput': {'NumberOfDecreasesToday': 0,
-                                                'ReadCapacityUnits': 1,
-                                                'WriteCapacityUnits': 1},
-                      'TableArn': 'arn:aws:dynamodb:eu-central-1:717687450252:table/Humans',
-                      'TableId': 'a9149586-aae8-46c4-a07e-d8444a1cc466',
-                      'TableName': 'Humans',
-                      'TableSizeBytes': 0,
-                      'TableStatus': 'DELETING'}}
-"""
+        Attribute types:
+            "S" for string
+            "N" for number
+            "B" for binary
+
+        Attribute key types:
+            "HASH" for partition key
+            "RANGE" for sort key
+        """
+        attribute = Attribute(
+            attribute_name=attribute_name, attribute_type=attribute_type
+        )
+        key_schema = KeySchema(key_name=attribute_name, key_type=key_type)
+        self.attributes.append(attribute)
+        self.keys.append(key_schema)
+
+
+class ProvisionedThroughput(BaseModel):
+    NumberOfDecreasesToday: int
+    ReadCapacityUnits: int
+    WriteCapacityUnits: int
+
+
+class TableDescription(BaseModel):
+    ItemCount: int
+    ProvisionedThroughput: ProvisionedThroughput
+    TableArn: str
+    TableId: str
+    TableName: str
+    TableSizeBytes: int
+    TableStatus: str
+
+
+class DeleteResponse(BaseModel):
+    ResponseMetadata: ResponseMetadata
+    TableDescription: TableDescription
+
+
+class GetItemResponse(BaseModel):
+    Item: dict
+    ResponseMetadata: ResponseMetadata
+
 
 if __name__ == "__main__":
     attributes = Attributes(
@@ -86,7 +114,15 @@ if __name__ == "__main__":
     keys = Keys(
         keys=[
             KeySchema(key_name="id", key_type=Key.HASH),
-            KeySchema(key_name="name", key_type=Key.RANGE),
+            # KeySchema(key_name="name", key_type=Key.RANGE),
         ]
     )
-    table = Table(table_name="Humans", attributes=attributes, keys=keys, rcu=1, wcu=1)
+    table = Table(table_name="Humans", rcu=1, wcu=1)
+    table.add_attribute(attribute_name="name", attribute_type="S", key_type="RANGE")
+    table.add_attribute(attribute_name="id", attribute_type="N", key_type="HASH")
+
+    print(table.dict())
+
+    # new_table = Table(table_name="Humans", rcu=1, wcu=1)
+    # new_table.add_attribute(attribute_name="name", attribute_type="S", key_type="RANGE")
+    # print(new_table.dict())

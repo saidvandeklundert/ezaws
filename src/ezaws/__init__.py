@@ -10,6 +10,8 @@ from ezaws.models.cloudwatch import LogEvent
 from ezaws.models.rds import DBInstanceType, DBEngine
 from ezaws.rds.rds import RDS
 from ezaws.lambdas.lambdas import Lambda
+from ezaws.dynamodb.dynamodb import DynamoDB
+from ezaws.models.dynamodb import Table
 
 __all__ = [
     "Messenger",
@@ -25,4 +27,6 @@ __all__ = [
     "DBEngine",
     "RDS",
     "Lambda",
+    "DynamoDB",
+    "Table",
 ]
