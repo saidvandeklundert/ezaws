@@ -103,7 +103,7 @@ class RDS:
 
         return StartRDSResponse(**response)
 
-    def stop_db(self, snap_shot_identifier: Optional[str] = None):
+    def stop_db(self, snap_shot_identifier: Optional[str] = None) -> StopRDSResponse:
         """Stop the database instance"""
         arg = {"DBInstanceIdentifier": self.db_name}
         if snap_shot_identifier:
