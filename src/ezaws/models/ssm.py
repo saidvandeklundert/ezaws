@@ -36,7 +36,7 @@ class CreateParameter(BaseModel):
     Tier: Optional[str]
     AllowedPattern: Optional[str]
 
-    def generate_parameter_args(self):
+    def generate_parameter_args(self) -> dict:
         """Generate the Parameter arguments for use by removing all
         keys that have the value 'None'."""
         cur_d = vars(self)

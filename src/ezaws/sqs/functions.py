@@ -79,7 +79,7 @@ def delete_message(
     return DeleteMessageResponse(**response)
 
 
-def list_queues(region: str, max_results=100) -> ListQueueResponse:
+def list_queues(region: str, max_results: int = 100) -> ListQueueResponse:
     """Returns a list of URLs inside a ListQueueResponse,
     listing all the queues in a region."""
     sqs_client = boto3.client("sqs", region_name=region)

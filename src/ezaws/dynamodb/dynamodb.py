@@ -1,14 +1,18 @@
-from pprint import pprint
 import boto3
 import botocore
-from pydantic import BaseModel
-from enum import Enum
+from boto3.dynamodb.conditions import Key
 from dataclasses import dataclass
-from botocore.exceptions import ClientError
-from ezaws.models.dynamodb import DeleteResponse, Table, GetItemResponse, Keys
-from typing import Union, Optional, List, Any, Dict
-from ezaws.exceptions import RDSException
-from ezaws import Region
+from ezaws.models.dynamodb import (
+    DeleteResponse,
+    Table,
+    GetItemResponse,
+    ScanResult,
+    PartiQLResult,
+)
+from typing import List, Any, Dict
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -39,7 +43,7 @@ class DynamoDB:
                 }
             )
 
-        table = dynamodb.create_table(
+        created_table = dynamodb.create_table(
             TableName=table.table_name,
             KeySchema=key_schema_list,
             AttributeDefinitions=attribute_list,
@@ -48,14 +52,17 @@ class DynamoDB:
                 "WriteCapacityUnits": table.wcu,
             },  # 1 RCU and 1 WCU is free!
         )
-        print("create table response:\n", table)
-        print(
-            f"Table {table.table_name} is in status {table.table_status}, waiting for \
-                the table to be fully provisioned."
+        logger.info(
+            f"Table {created_table.table_name} is in status {created_table.table_status}"
+            "\nWaiting for the table to be fully provisioned."
         )
-        table.meta.client.get_waiter("table_exists").wait(TableName="Humans")
-        state = dynamodb.Table("Humans").table_status
-        print(f"Table created, status is now:{state}")
+
+        created_table.meta.client.get_waiter("table_exists").wait(
+            TableName=table.table_name
+        )
+        state = dynamodb.Table(table.table_name).table_status
+        logger.info(f"Table created, status is now:{state}")
+
         return True
 
     def delete_table(self, table_name: str) -> DeleteResponse:
@@ -80,10 +87,10 @@ class DynamoDB:
         table.put_item(Item=item)
         return True
 
-    def scan(self, table_name: str):
+    def scan(self, table_name: str) -> ScanResult:
         """Scan target table"""
         scan_result = self.ddb_client.scan(TableName=table_name)
-        return scan_result
+        return ScanResult(**scan_result)
 
     def get_item(self, table_name: str, item: Dict[Any, Any]) -> GetItemResponse:
         """Get item from target table.
@@ -99,13 +106,12 @@ class DynamoDB:
         """
         table = self.ddb_resource.Table(table_name)
         get_item_result = table.get_item(Key=item)
-
         return GetItemResponse(**get_item_result)
 
     def list_tables(self) -> List[Any]:
-        """Return a list of table objects for the region"""
+        """Return a list of table objects (boto3.resources.factory.dynamodb.Table)
+        for the region"""
         tables = list(self.ddb_resource.tables.all())
-
         return tables
 
     def list_table_names(self) -> List[str]:
@@ -116,20 +122,20 @@ class DynamoDB:
 
         return tables
 
-    '''
-    def quarey(self):
-        """"""
-        dynamo_db = boto3.resource("dynamodb")
-        table = dynamo_db.Table("devices")
-        response = table.query(KeyConditionExpression=Key("name").eq("core02-wdc01"))
-        for item in response["Items"]:
-            pprint(item)
-    '''
+    #    def query(self, table_name: str) -> QueryResult:
+    #        dynamo_db = boto3.resource("dynamodb")
+    #        table = dynamo_db.Table(table_name)
+    #        response = table.query(KeyConditionExpression=Key("id").eq(10))
+    #        result = QueryResult(**response)
+    #        return result
 
+    def partiql_query(self, partiql_query: str) -> PartiQLResult:
+        """
+        Execute a PartiQL query against Dynamo.
 
-if __name__ == "__main__":
-
-    ddb = DynamoDB(region=Region.eu_central_1)
-    result = ddb.get_item(table_name="Humans", item={"id": 1828, "name": "Arnetta"})
-
-    pprint(result)
+        For information on using PartiQL, check
+         https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html
+        """
+        logger.info(f"Executing partiql query {partiql_query}\n")
+        result = self.ddb_client.execute_statement(Statement=partiql_query)
+        return PartiQLResult(**result)

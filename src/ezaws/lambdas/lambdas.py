@@ -16,7 +16,7 @@ class Lambda:
     region: Optional[Region] = None
     client: botocore.client = boto3.client("lambda")
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.region:
             self.client = boto3.client("lambda", region_name=self.region)
 

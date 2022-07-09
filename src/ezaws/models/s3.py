@@ -1,7 +1,7 @@
 from ezaws.models.common import ResponseMetadata
 from pydantic import BaseModel
 import datetime
-from typing import List, Dict, Optional, Literal, Any
+from typing import List, Dict, Optional, Literal, Any, Iterator
 from dateutil.tz import tzutc
 
 
@@ -37,7 +37,7 @@ class VersioningResponse(BaseModel):
     MFADelete: Optional[Literal["Enabled", "Disabled"]]
     versioning: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.Status == "Enabled":
             self.versioning = True
 

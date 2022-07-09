@@ -3,7 +3,7 @@ import csv
 from ezaws import Region
 from ezaws import DynamoDB
 
-MAX = 10
+MAX = 200
 
 if __name__ == "__main__":
     ddb = DynamoDB(region=Region.eu_central_1)

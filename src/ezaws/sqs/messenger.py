@@ -107,7 +107,7 @@ class Messenger:
         )
         return ReadMessageResponse(**response)
 
-    def delete_message(self, receipt_handle: str):
+    def delete_message(self, receipt_handle: str) -> DeleteMessageResponse:
         """Delete target message from the queueu"""
         sqs_client = boto3.client("sqs", region_name=self.region)
         response = sqs_client.delete_message(
@@ -131,7 +131,7 @@ class Messenger:
         ret = QueueAttributes(**response["Attributes"])
         return ret
 
-    def purge_queue(self):
+    def purge_queue(self) -> PurgeQueueResponse:
         """Purge the queue."""
         sqs_client = boto3.client("sqs", region_name=self.region)
         response = sqs_client.purge_queue(QueueUrl=self.queueu_url)
@@ -145,7 +145,7 @@ class Messenger:
         return DeleteQueueResponse(**response)
 
     @staticmethod
-    def _list_queues(region: str, max_results=100) -> ListQueueResponse:
+    def _list_queues(region: str, max_results: int = 100) -> ListQueueResponse:
         """Returns a list of URLs inside a ListQueueResponse,
         listing all the queues in a region."""
 

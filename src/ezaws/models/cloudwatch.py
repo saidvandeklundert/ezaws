@@ -1,6 +1,6 @@
 from ezaws.models.common import ResponseMetadata
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Iterator, List, Optional
 from ezaws.utils.timing import (
     convert_to_local,
     epoch_to_date_time,
@@ -38,7 +38,7 @@ class GetLogStreamRespone(BaseModel):
     ResponseMetadata: ResponseMetadata
     logStreams: List[LogStreams]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[LogStreams]:
         return iter(self.logStreams)
 
 

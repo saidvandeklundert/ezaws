@@ -1,7 +1,9 @@
 from pprint import pprint
 from ezaws import Region
 from ezaws import DynamoDB, Table
+import logging
 
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
 if __name__ == "__main__":
     table = Table(table_name="Humans", rcu=1, wcu=1)
