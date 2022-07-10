@@ -17,7 +17,9 @@ class ParameterStore:
 
     region: str
 
-    def get_parameter(self, parameter: str, unencrypted: bool = True):
+    def get_parameter(
+        self, parameter: str, unencrypted: bool = True
+    ) -> GetParameterResponse:
         """Retrieves target parameter, represented as a path to the parameter
         in SSM Parameter store."""
         ssm_client = boto3.client("ssm", self.region)

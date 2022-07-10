@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 import datetime
 from ezaws.models.common import ResponseMetadata
-from typing import List, Optional
+from typing import List, Optional, Any
 
 """
 response = client.put_parameter(
@@ -72,7 +72,7 @@ class RegionParameters(BaseModel):
     Parameters: List[Parameter]
     ResponseMetadata: ResponseMetadata
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return iter(self.Parameters)
 
 

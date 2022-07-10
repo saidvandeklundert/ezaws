@@ -2,7 +2,6 @@ from ezaws.models.common import ResponseMetadata
 from pydantic import BaseModel
 import datetime
 from typing import List, Dict, Optional, Literal, Any, Iterator
-from dateutil.tz import tzutc
 
 
 class BucketBrief(BaseModel):
@@ -18,7 +17,7 @@ class ListBucketsResponse(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return iter(self.Buckets)
 
 

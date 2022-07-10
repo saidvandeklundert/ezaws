@@ -3,7 +3,7 @@ import botocore
 from ezaws import Region
 from dataclasses import dataclass
 from ezaws.models.lambdas import ListFunctionsResponse, RunFunctionResponse
-from typing import Union, Optional, Literal
+from typing import Union, Optional, Literal, Any
 import base64
 
 
@@ -33,7 +33,7 @@ class Lambda:
         log_type: Optional[Literal["Tail"]] = "Tail",
     ) -> RunFunctionResponse:
 
-        args = {
+        args: dict[Any, Any] = {
             "FunctionName": function_name,
         }
         if invocation:

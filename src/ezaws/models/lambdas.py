@@ -1,6 +1,6 @@
 from ezaws.models.common import ResponseMetadata
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional, Iterator
+from typing import List, Dict, Any, Optional, Iterator, Union
 
 
 class Function(BaseModel):
@@ -27,13 +27,13 @@ class ListFunctionsResponse(BaseModel):
     Functions: List[Function]
     ResponseMetadata: ResponseMetadata
 
-    def __iter__(self) -> Iterator[Function]:
+    def __iter__(self) -> Any:
         return iter(self.Functions)
 
 
 class RunFunctionResponse(BaseModel):
     ExecutedVersion: str
-    LogResult: Optional[str] = None
+    LogResult: Optional[Union[str, bytes]] = None
     ResponseMetadata: ResponseMetadata
     StatusCode: int
     Payload: Any
