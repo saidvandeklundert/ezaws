@@ -1,7 +1,7 @@
 import boto3
 from dataclasses import dataclass
 from typing import Any
-from ezaws.sqs.models import (
+from ezaws.models.sqs import (
     DeleteQueueResponse,
     CreateQueueResponse,
     ListQueueResponse,

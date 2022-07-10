@@ -1,5 +1,5 @@
 from ezaws import Messenger
-from ezaws.sqs.models import QueueAttributes, PurgeQueueResponse
+from ezaws.models.sqs import QueueAttributes, PurgeQueueResponse
 from ezaws.sqs.functions import list_queues
 from uuid import uuid4
 
