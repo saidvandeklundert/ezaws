@@ -1,7 +1,7 @@
 import boto3
 
 
-from ezaws.sqs.models import (
+from ezaws.models.sqs import (
     GetQueueResponse,
     CreateQueueResponse,
     DeleteQueueResponse,
