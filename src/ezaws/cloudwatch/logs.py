@@ -16,7 +16,7 @@ from ezaws.models.cloudwatch import (
     LogEvent,
     Events,
 )
-from typing import Optional, Dict, NewType, Any, Union, List
+from typing import Optional, Dict, NewType, Any, Sequence, Union, List
 from pprint import pprint
 import time
 from pydantic import BaseModel, Field
@@ -54,7 +54,7 @@ class Log(BaseModel):
 
     name: str
     region: str
-    default_stream_name: str = "general"
+    default_stream_name: StreamName = "general"  # type: ignore
     streams: Dict[StreamName, Union[SequenceToken, None]] = Field(default_factory=dict)
 
     def __init__(self, **data: Any):
@@ -66,7 +66,7 @@ class Log(BaseModel):
         self, tags: Optional[Dict[str, str]] = None
     ) -> CreateLogGroupResponse:
         client = boto3.client("logs", region_name=self.region)
-        args = {"logGroupName": self.name}
+        args: dict[str, Any] = {"logGroupName": self.name}
         if tags:
             args["tags"] = tags
         response = client.create_log_group(**args)
@@ -77,7 +77,7 @@ class Log(BaseModel):
         response = client.delete_log_group(logGroupName=self.name)
         return DeleteLogGroupResponse(**response)
 
-    def create_stream(self, stream_name: str) -> None:
+    def create_stream(self, stream_name: StreamName) -> None:
         """Create a stream for this Cloudwatch logs instance."""
         client = boto3.client("logs", region_name=self.region)
         client.create_log_stream(logGroupName=self.name, logStreamName=stream_name)
@@ -87,7 +87,7 @@ class Log(BaseModel):
         self,
         *,
         message: str,
-        stream_name: Optional[str] = None,
+        stream_name: Optional[StreamName] = None,
     ) -> LogResponse:
         """Log a message to a stream.
 
@@ -104,7 +104,7 @@ class Log(BaseModel):
         self,
         *,
         messages: List[str],
-        stream_name: Optional[str] = None,
+        stream_name: Optional[StreamName] = None,
     ) -> LogResponse:
         """Log multiple message to a stream.
 
@@ -124,8 +124,8 @@ class Log(BaseModel):
     def log_events(
         self,
         *,
-        events: List[Union[LogEvent, Dict]],
-        stream_name: Optional[str] = None,
+        events: Sequence[Union[LogEvent, Dict]],
+        stream_name: Optional[StreamName] = None,
     ) -> LogResponse:
         """Log multiple message to a stream.
 
@@ -156,13 +156,13 @@ class Log(BaseModel):
         }
 
         if self.streams.get(stream_name) is not None:
-            log_event["sequenceToken"] = self.streams.get(stream_name)
+            log_event["sequenceToken"] = self.streams.get(stream_name)  # type: ignore
 
         response = client.put_log_events(**log_event)
 
         ret = LogResponse(**response)
-
-        self.streams[stream_name] = ret.nextSequenceToken
+        token: SequenceToken = ret.nextSequenceToken  # type: ignore
+        self.streams[stream_name] = token
         return ret
 
     def get_log_streams(
@@ -189,12 +189,12 @@ class Log(BaseModel):
         for stream in resp:
             # print(stream.uploadSequenceToken, stream.logStreamName)
             if isinstance(stream.uploadSequenceToken, int):
-                self.streams[stream.logStreamName] = str(stream.uploadSequenceToken)
+                self.streams[stream.logStreamName] = str(stream.uploadSequenceToken)  # type: ignore
             else:
                 self.streams[stream.logStreamName] = None
         return None
 
-    def _get_stream_name(self) -> str:
+    def _get_stream_name(self) -> StreamName:
         """Helper to return the default stream name
         and raise an exception in case it does not exist.
         """

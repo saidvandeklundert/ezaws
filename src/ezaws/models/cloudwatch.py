@@ -1,11 +1,13 @@
 from ezaws.models.common import ResponseMetadata
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Iterator, List, Optional, Any
 from ezaws.utils.timing import (
     convert_to_local,
     epoch_to_date_time,
     datetime_to_epoch_in_ms,
 )
+
+import datetime
 
 
 class CreateLogGroupResponse(BaseModel):
@@ -38,7 +40,7 @@ class GetLogStreamRespone(BaseModel):
     ResponseMetadata: ResponseMetadata
     logStreams: List[LogStreams]
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return iter(self.logStreams)
 
 
@@ -54,7 +56,7 @@ class Event(BaseModel):
     ingestionTime: Optional[int]
 
     @property
-    def date_time_local(self):
+    def date_time_local(self) -> datetime.datetime:
         """Converts the epoch that is returned by Cloudwatch to
         a datetime.datetime object that represents the local time."""
         date_time = epoch_to_date_time(self.timestamp / 1000.0)
@@ -62,7 +64,7 @@ class Event(BaseModel):
         return local_date_time
 
     @property
-    def epoch_local(self):
+    def epoch_local(self) -> int:
         """Converts the epoch that is returned by Cloudwatch to
         an epoch value that is representative of the local time."""
         date_time = epoch_to_date_time(self.timestamp / 1000.0)
@@ -77,7 +79,7 @@ class TailLogResponse(BaseModel):
     nextBackwardToken: str
     nextForwardToken: str
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return iter(self.events)
 
 

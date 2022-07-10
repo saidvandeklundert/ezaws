@@ -1,4 +1,6 @@
 # .coveragerc to control coverage.py
-
 [report]
 fail_under = 80.0
+
+[run]
+omit = tests/*

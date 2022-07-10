@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 import datetime
 from ezaws.models.common import ResponseMetadata
-from typing import List, Optional
+from typing import List, Optional, Any
 
 """
 response = client.put_parameter(
@@ -36,7 +36,7 @@ class CreateParameter(BaseModel):
     Tier: Optional[str]
     AllowedPattern: Optional[str]
 
-    def generate_parameter_args(self):
+    def generate_parameter_args(self) -> dict:
         """Generate the Parameter arguments for use by removing all
         keys that have the value 'None'."""
         cur_d = vars(self)
@@ -72,7 +72,7 @@ class RegionParameters(BaseModel):
     Parameters: List[Parameter]
     ResponseMetadata: ResponseMetadata
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return iter(self.Parameters)
 
 

@@ -91,11 +91,11 @@ class RDS:
                 return DBInstanceNotFoundResponse()
             raise e
         # pprint(response, width=2)
-        response = DescribeDBResponse(**response)
-        self.arn = response.DBInstances[0].DBInstanceArn
-        if response.DBInstances[0].Endpoint:
-            self.endpoint = response.DBInstances[0].Endpoint
-        return response
+        return_value = DescribeDBResponse(**response)
+        self.arn = return_value.DBInstances[0].DBInstanceArn
+        if return_value.DBInstances[0].Endpoint:
+            self.endpoint = return_value.DBInstances[0].Endpoint
+        return return_value
 
     def start_db(self) -> StartRDSResponse:
         """Start the database instance"""

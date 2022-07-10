@@ -1,8 +1,7 @@
 from ezaws.models.common import ResponseMetadata
 from pydantic import BaseModel
 import datetime
-from typing import List, Dict, Optional, Literal, Any
-from dateutil.tz import tzutc
+from typing import List, Dict, Optional, Literal, Any, Iterator
 
 
 class BucketBrief(BaseModel):
@@ -18,7 +17,7 @@ class ListBucketsResponse(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return iter(self.Buckets)
 
 
@@ -37,7 +36,7 @@ class VersioningResponse(BaseModel):
     MFADelete: Optional[Literal["Enabled", "Disabled"]]
     versioning: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.Status == "Enabled":
             self.versioning = True
 

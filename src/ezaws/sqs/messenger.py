@@ -1,6 +1,6 @@
 import boto3
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import Any
 from ezaws.sqs.models import (
     DeleteQueueResponse,
     CreateQueueResponse,
@@ -12,8 +12,6 @@ from ezaws.sqs.models import (
     PurgeQueueResponse,
     QueueAttributes,
 )
-
-T = TypeVar("T", bound="Messenger")
 
 
 # TODO: add read_all() method
@@ -32,7 +30,7 @@ class Messenger:
         region: str,
         delay_seconds: str = "0",
         visibility_timeout: str = "30",
-    ) -> T:
+    ) -> Any:
         """Returns a Messenger for a region from a 'queue_name'.
 
         If the queue already exists, that queue is returned. If the
@@ -85,8 +83,8 @@ class Messenger:
                 "VisibilityTimeout": visibility_timeout,  # default 30, min 0
             },
         )
-        response = CreateQueueResponse(**response)
-        return response.QueueUrl
+        create_queue_response = CreateQueueResponse(**response)
+        return create_queue_response.QueueUrl
 
     def send_message(self, message: str) -> SendMessageResponse:
         """Send a message to the queue."""
@@ -107,7 +105,7 @@ class Messenger:
         )
         return ReadMessageResponse(**response)
 
-    def delete_message(self, receipt_handle: str):
+    def delete_message(self, receipt_handle: str) -> DeleteMessageResponse:
         """Delete target message from the queueu"""
         sqs_client = boto3.client("sqs", region_name=self.region)
         response = sqs_client.delete_message(
@@ -131,7 +129,7 @@ class Messenger:
         ret = QueueAttributes(**response["Attributes"])
         return ret
 
-    def purge_queue(self):
+    def purge_queue(self) -> PurgeQueueResponse:
         """Purge the queue."""
         sqs_client = boto3.client("sqs", region_name=self.region)
         response = sqs_client.purge_queue(QueueUrl=self.queueu_url)
@@ -145,7 +143,7 @@ class Messenger:
         return DeleteQueueResponse(**response)
 
     @staticmethod
-    def _list_queues(region: str, max_results=100) -> ListQueueResponse:
+    def _list_queues(region: str, max_results: int = 100) -> ListQueueResponse:
         """Returns a list of URLs inside a ListQueueResponse,
         listing all the queues in a region."""
 
