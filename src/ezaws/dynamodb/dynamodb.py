@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DynamoDB:
     """
-    Interface to Dyanmo
+    Interface to DynamoDB
     """
 
     region: str
@@ -91,6 +91,16 @@ class DynamoDB:
         """Scan target table"""
         scan_result = self.ddb_client.scan(TableName=table_name)
         return ScanResult(**scan_result)
+
+    def ez_scan(self, table_name: str) -> list[Any]:
+        result = self.ddb_client.scan(table_name=table_name)
+        deserializer = boto3.dynamodb.types.TypeDeserializer()
+
+        def deserialize(d: dict) -> dict:
+            return {k: deserializer.deserialize(v) for k, v in d.items()}
+
+        data = [deserialize(d) for d in result.Items]
+        return data
 
     def get_item(self, table_name: str, item: Dict[Any, Any]) -> GetItemResponse:
         """Get item from target table.
