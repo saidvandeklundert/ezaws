@@ -1,12 +1,13 @@
 from setuptools import setup
 from pathlib import Path
 
-this_directory = Path(__file__).parent.parent
+this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="ezaws",
-    version="0.20",
+    version="0.23",
+    package_dir={"ezaws": "src/ezaws"},
     packages=["ezaws"],
     description="An easy to use interface to AWS, ezaws.",
     url="https://github.com/saidvandeklundert/ezaws",
