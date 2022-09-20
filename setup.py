@@ -1,4 +1,5 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from distutils.core import setup
 from pathlib import Path
 
 this_directory = Path(__file__).parent
@@ -6,8 +7,8 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="ezaws",
-    version="0.25",
-    package_dir={"ezaws": "src/ezaws"},
+    version="0.29",
+    package_dir={"ezaws": "ezaws"},
     packages=find_packages(exclude=("test*",)),
     description="An easy to use interface to AWS, ezaws.",
     url="https://github.com/saidvandeklundert/ezaws",
