@@ -87,6 +87,13 @@ class DynamoDB:
         table.put_item(Item=item)
         return True
 
+    def delete_item(self, table_name: str, item: Dict[Any, Any]) -> bool:
+        """Delete an item from target table."""
+        table = self.ddb_resource.Table(table_name)
+        table.delete_item(Key=item)
+
+        return True
+
     def scan(self, table_name: str) -> ScanResult:
         """Scan target table"""
         scan_result = self.ddb_client.scan(TableName=table_name)

@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="ezaws",
-    version="0.29",
+    version="0.31",
     package_dir={"ezaws": "ezaws"},
     packages=find_packages(exclude=("test*",)),
     description="An easy to use interface to AWS, ezaws.",
